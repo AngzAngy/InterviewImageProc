@@ -1,0 +1,11 @@
+<resources>
+
+    <style name="Theme.CameraBase" parent="android:Theme.Black.NoTitleBar.Fullscreen" />
+
+    <style name="Theme.Camera" parent="Theme.CameraBase">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:colorBackgroundCacheHint">@android:color/black</item>
+    </style>
+
+</resources>

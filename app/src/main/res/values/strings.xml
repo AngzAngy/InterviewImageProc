@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">InterviewImageProc</string>
+    <string name="action_original">Original</string>
+    <string name = "text_loading">Loading&#8230;</string>
+    <string name="common_no_storage">Not enough storage.</string>
+    <string name="common_too_small">The image is too small.</string>
+</resources>
