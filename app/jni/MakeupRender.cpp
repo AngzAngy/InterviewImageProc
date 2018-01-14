@@ -3,6 +3,7 @@
 #include "jnilogger.h"
 #include "SelfDef.h"
 #include <stdlib.h>
+#include "GLUtil.h"
 
 static const GLfloat imageVertices[] = {
     -1.0f, -1.0f,
@@ -84,7 +85,8 @@ void MakeupRender::setup(int width, int height){
     "gl_FragColor = sum/factor;"
     "}";
         glViewport(0, 0, width, height);
-        glEnable(GL_TEXTURE);
+        GLUtil::checkGlError("glViewport");
+        GLUtil::checkGlError("glEnable(GL_TEXTURE)");
         createGLProgram(vShader, fShader);
 
         mInTexture=new GLTexture2d(NULL, width, height, GL_RGBA, GL_TEXTURE0);

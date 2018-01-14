@@ -1,14 +1,10 @@
 #include "GLProgram.h"
 #include "jnilogger.h"
+#include "GLUtil.h"
 
 static void printGLString(const char *name, GLenum s) {
     const char *v = (const char *) glGetString(s);
     LOGI("GL %s = %s\n", name, v);
-}
-static void checkGlError(const char* op) {
-    for (GLint error = glGetError(); error; error = glGetError()) {
-        LOGE("err after %s \n", op);
-    }
 }
 
 GLuint GLProgram::loadShader ( GLenum type, const char *shaderSrc )
@@ -18,19 +14,24 @@ GLuint GLProgram::loadShader ( GLenum type, const char *shaderSrc )
 
     // Create the shader object
     shader = glCreateShader ( type );
+    GLUtil::checkGlError("glCreateShader");
     if ( shader == 0 )
         return 0;
 
     // Load the shader source
     glShaderSource ( shader, 1, &shaderSrc, NULL );
+    GLUtil::checkGlError("glShaderSource");
 
     // Compile the shader
     glCompileShader ( shader );
+    GLUtil::checkGlError("glCompileShader");
 
     // Check the compile status
     glGetShaderiv ( shader, GL_COMPILE_STATUS, &compiled );
+    GLUtil::checkGlError("glGetShaderiv");
 
     glReleaseShaderCompiler();
+    GLUtil::checkGlError("glReleaseShaderCompiler");
 
     if ( !compiled )
     {
@@ -83,21 +84,23 @@ GLuint GLProgram::createProgram ( const char * vertShaderSrc, const char * fragS
 
     // Create the GLProgram object
     programObject = glCreateProgram ( );
+    GLUtil::checkGlError("glCreatProgram");
 
     if ( programObject == 0 )
         return 0;
 
     glAttachShader ( programObject, vertexShader );
-    checkGlError("glAttachVertexShader");
+    GLUtil::checkGlError("glAttachVertexShader");
     glAttachShader ( programObject, fragmentShader );
-    checkGlError("glAttachFragmentShader");
+    GLUtil::checkGlError("glAttachFragmentShader");
 
     // Link the GLProgram
     glLinkProgram ( programObject );
-    checkGlError("glLinkProgram");
+    GLUtil::checkGlError("glLinkProgram");
 
     // Check the link status
     glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
+    GLUtil::checkGlError("glGetProgramiv");
 
     if ( !linked )
     {
@@ -119,12 +122,15 @@ GLuint GLProgram::createProgram ( const char * vertShaderSrc, const char * fragS
         glDeleteShader ( vertexShader );
         glDeleteShader ( fragmentShader );
         glDeleteProgram ( programObject );
+        GLUtil::checkGlError("glDeleteProgram");
         return 0;
     }
 
     // Free up no longer needed shader resources
     glDeleteShader ( vertexShader );
+    GLUtil::checkGlError("glDeleteVertexShader");
     glDeleteShader ( fragmentShader );
+    GLUtil::checkGlError("glDeleteFragmentShader");
 
     return programObject;
 }
@@ -155,41 +161,41 @@ GLProgram::~GLProgram()
         glUseProgram(mProgramId);
     mUsed = true;
     attribute = glGetUniformLocation(mProgramId, name);
-    checkGlError("glGetUniformLocation");
+    GLUtil::checkGlError("glGetUniformLocation");
     usetexture = ptexture->getTexturename() - GL_TEXTURE0;
     glActiveTexture(ptexture->getTexturename());
-    checkGlError("glActiveTexture");
+    GLUtil::checkGlError("glActiveTexture");
     glBindTexture(GL_TEXTURE_2D, ptexture->getTextureId());
-    checkGlError("glBindTexture");
+    GLUtil::checkGlError("glBindTexture");
     glUniform1i(attribute, usetexture);
-    checkGlError("glUniform1i");
+    GLUtil::checkGlError("glUniform1i");
 }*/
 
 void GLProgram::bindTexture(const char *name, GLuint texId, GLuint textureUnit) {
     int usetexture = textureUnit - GL_TEXTURE0;
     GLint attribute = glGetUniformLocation(mProgramId, name);
-    checkGlError("glGetUniformLocation");
+    GLUtil::checkGlError("glGetUniformLocation");
     glActiveTexture(textureUnit);
-    checkGlError("glActiveTexture");
+    GLUtil::checkGlError("glActiveTexture");
     glBindTexture(GL_TEXTURE_2D, texId);
-    checkGlError("glBindTexture");
+    GLUtil::checkGlError("glBindTexture");
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-//    checkGlError("glTexParameteri");
+//    GLUtil::checkGlError("glTexParameteri");
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-//    checkGlError("glTexParameteri");
+//    GLUtil::checkGlError("glTexParameteri");
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//    checkGlError("glTexParameteri");
+//    GLUtil::checkGlError("glTexParameteri");
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//    checkGlError("glTexParameteri");
+//    GLUtil::checkGlError("glTexParameteri");
     glUniform1i(attribute, usetexture);
-    checkGlError("glUniform1i");
+    GLUtil::checkGlError("glUniform1i");
 }
 
 void GLProgram::unbindTexture(GLuint textureUnit){
     glActiveTexture(textureUnit);
-    checkGlError("glActiveTexture");
+    GLUtil::checkGlError("glActiveTexture");
     glBindTexture(GL_TEXTURE_2D, 0);
-    checkGlError("glBindTexture");
+    GLUtil::checkGlError("glBindTexture");
 }
 
 bool GLProgram::hasUniform( const char * name ) {

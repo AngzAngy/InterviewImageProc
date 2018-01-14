@@ -22,7 +22,6 @@ Java_org_interview_jni_MakeupJni_init
 JNIEXPORT void JNICALL
 Java_org_interview_jni_MakeupJni_faceClean
   (JNIEnv *env, jclass jthiz, jobject jinbmp, jobject joutbmp, jfloat jlevel){
-    MakeupRender render;
     void *inpixels;
     void *outpixels;
     AndroidBitmapInfo info;
