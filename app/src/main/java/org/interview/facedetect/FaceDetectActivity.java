@@ -16,6 +16,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnKeyListener;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -25,6 +26,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 
 public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarChangeListener, View.OnTouchListener{
@@ -36,7 +38,7 @@ public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarCha
     private MakeupThread mMakeupThread;
     private SeekBar mSeekBar;
     private int mCurrentProc;
-    private View mOriginalActionView;
+    private TextView mOriginalActionView;
 
     /*
      * Load Library Must do this first
@@ -60,7 +62,7 @@ public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarCha
         mFaceImageView = (FaceImageView) this.findViewById(R.id.filter_img_v);
         mSeekBar = (SeekBar)findViewById(R.id.seekbar_id);
         mSeekBar.setOnSeekBarChangeListener(this);
-        mOriginalActionView = findViewById(R.id.original_id);
+        mOriginalActionView = ((TextView) findViewById(R.id.original_id));
         mOriginalActionView.setOnTouchListener(this);
 
         Intent intent = getIntent();
@@ -210,9 +212,11 @@ public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarCha
     public boolean onTouch(View arg0, MotionEvent event) {
         switch(event.getAction()){
         case MotionEvent.ACTION_DOWN:
+            mOriginalActionView.setTextColor(Color.GREEN);
             mFaceImageView.setImageBitmap(mFaceBmpBk);
             break;
         case MotionEvent.ACTION_UP:
+            mOriginalActionView.setTextColor(Color.WHITE);
             mFaceImageView.setImageBitmap(mFaceBmp);
             break;
         }
