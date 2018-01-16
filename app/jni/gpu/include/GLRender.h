@@ -17,6 +17,7 @@ public:
     virtual ~GLRender();
 
     void createGLProgram(const char * vertexShader, const char * fragShaderSrc);
+    void destroyGLProgram();
     void createTexture(const GLvoid* pixels, int w, int h, GLint format, int textureUnit);
     virtual void render(void* userData);
 

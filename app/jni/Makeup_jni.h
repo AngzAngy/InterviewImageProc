@@ -12,8 +12,8 @@ Java_org_interview_jni_MakeupJni_init
   (JNIEnv *, jclass);
 
 JNIEXPORT void JNICALL
-Java_org_interview_jni_MakeupJni_faceClean
-  (JNIEnv *, jclass, jobject, jobject, jfloat);
+Java_org_interview_jni_MakeupJni_makeup
+  (JNIEnv *, jclass, jobject, jobject, jint);
 
 JNIEXPORT void JNICALL
 Java_org_interview_jni_MakeupJni_destroy

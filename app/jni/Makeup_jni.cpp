@@ -1,7 +1,7 @@
 #include "Makeup_jni.h"
 #include "jnilogger.h"
 #include "MakeupRender.h"
-#include "Image.h"
+#include "MakeupParams.h"
 #include "SelfDef.h"
 #include "EglGlContext.h"
 #include <android/log.h>
@@ -20,8 +20,8 @@ Java_org_interview_jni_MakeupJni_init
 }
 
 JNIEXPORT void JNICALL
-Java_org_interview_jni_MakeupJni_faceClean
-  (JNIEnv *env, jclass jthiz, jobject jinbmp, jobject joutbmp, jfloat jlevel){
+Java_org_interview_jni_MakeupJni_makeup
+  (JNIEnv *env, jclass jthiz, jobject jinbmp, jobject joutbmp, jint jtype){
     void *inpixels;
     void *outpixels;
     AndroidBitmapInfo info;
@@ -29,15 +29,18 @@ Java_org_interview_jni_MakeupJni_faceClean
     AndroidBitmap_lockPixels(env, jinbmp, &inpixels);
     AndroidBitmap_lockPixels(env, joutbmp, &outpixels);
 
+    MakeupParams params;
     Image img;
     img.width = info.width;
     img.height = info.height;
     img.plane[0] = inpixels;
     img.plane[1] = outpixels;
-    img.level = jlevel;
+    img.level = 0;
+    params.pImg = &img;
+    params.type = (MakeupType)jtype;
 
     if(gRender)
-        gRender->render((void*)&img);
+        gRender->render((void*)&params);
 
     AndroidBitmap_unlockPixels(env, joutbmp);
     AndroidBitmap_unlockPixels(env, jinbmp);

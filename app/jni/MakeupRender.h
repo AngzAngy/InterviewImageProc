@@ -21,6 +21,7 @@ private:
     GLTexture2d *mInTexture;
     Framebuffer mFbo;
     GLTexture2d *mOutTexture;
+    bool bSetup;
 };
 
 #endif

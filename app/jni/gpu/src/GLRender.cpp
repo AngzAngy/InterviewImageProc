@@ -7,7 +7,7 @@ GLRender::GLRender():mProgram(NULL){
 }
 
 GLRender::~GLRender(){
-    deleteC(mProgram);
+    destroyGLProgram();
     for(int i=0;i<MAX_TEXTURE_NUM;i++){
         deleteC(mTextures[i]);
     }
@@ -16,6 +16,10 @@ GLRender::~GLRender(){
 void GLRender::createGLProgram(const char * vertexShader, const char * fragShaderSrc){
     deleteC(mProgram);
     mProgram = new GLProgram(vertexShader, fragShaderSrc);
+}
+
+void GLRender::destroyGLProgram(){
+    deleteC(mProgram);
 }
 
 void GLRender::createTexture(const GLvoid* pixels, int w, int h, GLint format, int textureUnit){

@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -37,7 +38,6 @@ public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarCha
     private String mCascadeFile;
     private MakeupThread mMakeupThread;
     private SeekBar mSeekBar;
-    private int mCurrentProc;
     private TextView mOriginalActionView;
 
     /*
@@ -64,6 +64,19 @@ public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarCha
         mSeekBar.setOnSeekBarChangeListener(this);
         mOriginalActionView = ((TextView) findViewById(R.id.original_id));
         mOriginalActionView.setOnTouchListener(this);
+        ((RadioGroup) findViewById(R.id.makeup_group)).setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId){
+                    case R.id.faceclean_btn:
+                        makeup(1);
+                        break;
+                    case R.id.skinwhiten_btn:
+                        makeup(0);
+                        break;
+                }
+            }
+        });
 
         Intent intent = getIntent();
         Uri uri = intent.getData();
@@ -169,7 +182,6 @@ public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarCha
                 FaceDetectJni.getFaceRects(rectArr);
                 mFaceImageView.setImageBitmap(mFaceBmp);
                 mFaceImageView.setFaces(rectArr);
-                mSeekBar.setVisibility(View.VISIBLE);
                 mOriginalActionView.setVisibility(View.VISIBLE);
             }else{
                 mFaceImageView.setImageBitmap(mFaceBmp);
@@ -178,26 +190,25 @@ public class FaceDetectActivity extends Activity implements SeekBar.OnSeekBarCha
         }
     }
 
+    private void makeup(final int type){
+        if(mMakeupThread!=null){
+            mMakeupThread.pushQueue(new Runnable() {
+                @Override
+                public void run() {
+                    MakeupJni.makeup(mFaceBmpBk, mFaceBmp, type);
+                    mFaceImageView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mFaceImageView.setImageBitmap(mFaceBmp);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
     @Override
     public void onProgressChanged(SeekBar arg0, final int proc, boolean arg2) {
-            mCurrentProc = proc;
-
-            if(mMakeupThread!=null){
-                mMakeupThread.pushQueue(new Runnable() {
-                    @Override
-                    public void run() {
-                      float level = proc * 0.04f;
-                      Log.e("MY_LOG_TAG", "level=="+level+",,,proc=="+mCurrentProc);
-                      MakeupJni.faceClean(mFaceBmpBk, mFaceBmp, level);
-                      mFaceImageView.post(new Runnable() {
-                          @Override
-                          public void run() {
-                              mFaceImageView.setImageBitmap(mFaceBmp);
-                          }
-                      });
-                    }
-                });
-            }
     }
 
     @Override

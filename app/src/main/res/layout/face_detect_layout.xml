@@ -14,18 +14,46 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:visibility="invisible"
+        android:visibility="gone"
         />
     <TextView 
         android:id="@+id/original_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_above="@id/seekbar_id"
+        android:layout_alignParentBottom="true"
         android:text="@string/action_original"
         android:textColor="@android:color/white"
-        android:textSize="25sp"
-        android:layout_marginBottom="15dp"
+        android:textSize="18sp"
+        android:layout_marginBottom="20dp"
         android:visibility="invisible"
+        android:layout_marginRight="8dp"
         />
+    <RadioGroup
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentRight="true"
+        android:id="@+id/makeup_group"
+        >
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/skinwhiten_btn"
+            android:text="@string/skinwhiten"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            />
+        <RadioButton
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/faceclean_btn"
+            android:text="@string/faceclean"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            />
+    </RadioGroup>
 </RelativeLayout>

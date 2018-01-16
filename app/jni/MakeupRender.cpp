@@ -1,5 +1,5 @@
 #include "MakeupRender.h"
-#include "Image.h"
+#include "MakeupParams.h"
 #include "jnilogger.h"
 #include "SelfDef.h"
 #include <stdlib.h>
@@ -26,26 +26,14 @@ static const GLfloat TextureCoordinates[] = {
     1.0f, 1.0f,
 };
 
-MakeupRender::MakeupRender():mOutTexture(NULL),mInTexture(NULL){
-    mCtxt.createEGLPbufferContext();
-}
-
-MakeupRender::~MakeupRender(){
-    deleteC(mInTexture);
-    deleteC(mOutTexture);
-    mCtxt.destroyEGLContext();
-}
-
-void MakeupRender::setup(int width, int height){
-    if(NULL==mProgram){
-        char vShader[] = "attribute vec4 aPosition;"
+static const char vShader[] = "attribute vec4 aPosition;"
                 "attribute vec2 aTextureCoord;"
                 "varying vec2 vTextureCoord;"
                 "void main() {"
                 " gl_Position = aPosition; "
                 "vTextureCoord = aTextureCoord;}";
 
-        char fShader[] = "precision mediump float;"
+static const char bilateralFilterShader[] = "precision mediump float;"
     "varying vec2 vTextureCoord;"
     "uniform sampler2D sTexture;"
     "uniform vec2 imageSize;    "
@@ -83,25 +71,64 @@ void MakeupRender::setup(int width, int height){
         "maskSum +=  mask;}"
     "gl_FragColor = vec4(valueSum/maskSum, 1.0);"
     "}";
+
+static const char logCurveShader[] = "precision mediump float;"
+        "varying vec2 vTextureCoord;"
+        "uniform sampler2D sTexture;"
+        "uniform vec2 imageSize;    "
+        "uniform float level;       "
+        "void main(){"
+            "float beta = 2.0;"//beta为调节参数，绘制了beta分别为[2,3,4,5]时,beta越大，美白的程度越强。
+            "vec4 curColor;"
+            "vec3 curveColor;"
+            "vec3 one = vec3(1.0);"
+             "curColor= texture2D(sTexture,vTextureCoord);"
+             "curveColor= (1.0 / log(beta)) * log((beta - 1.0) * curColor.rgb + one);"
+            "gl_FragColor = vec4(curveColor, 1.0);"
+        "}";
+
+MakeupRender::MakeupRender():mOutTexture(NULL),mInTexture(NULL),bSetup(false){
+    mCtxt.createEGLPbufferContext();
+}
+
+MakeupRender::~MakeupRender(){
+    deleteC(mInTexture);
+    deleteC(mOutTexture);
+    mCtxt.destroyEGLContext();
+}
+
+void MakeupRender::setup(int width, int height){
+    if(!bSetup){
         glViewport(0, 0, width, height);
         GLUtil::checkGlError("glViewport");
         GLUtil::checkGlError("glEnable(GL_TEXTURE)");
-        createGLProgram(vShader, fShader);
 
         mInTexture=new GLTexture2d(NULL, width, height, GL_RGBA, GL_TEXTURE0);
         mFbo.createFBO();
         mOutTexture=new GLTexture2d(NULL, width, height, GL_RGBA, GL_TEXTURE1);
         LOGI("setup,,size: %d x %d", width, height);
+        bSetup = true;
     }
 }
 void MakeupRender::render(void* userData){
-    Image *pImg = (Image *)userData;
-    if(!pImg){
+    MakeupParams *params = (MakeupParams *)userData;
+    if(!params){
         return;
     }
 
-    setup(pImg->width, pImg->height);
-    LOGI("render,,size: %d x %d,,,level:%f", pImg->width, pImg->height, pImg->level);
+    destroyGLProgram();
+    switch(params->type){
+        case SKINWHITEN:
+            createGLProgram(vShader, logCurveShader);
+            break;
+        case FACECLEAN:
+        default:
+            createGLProgram(vShader, bilateralFilterShader);
+            break;
+    }
+
+    setup(params->pImg->width, params->pImg->height);
+    LOGI("render,,size: %d x %d,,,level:%f", params->pImg->width, params->pImg->height, params->pImg->level);
 
     mProgram->useProgram();
     GLuint program = mProgram->getProgramId();
@@ -110,13 +137,13 @@ void MakeupRender::render(void* userData){
     mFbo.bindTexture(GL_TEXTURE_2D, mOutTexture->getTextureId());
 
     float imageSize[2];
-    imageSize[0]=pImg->width;
-    imageSize[1]=pImg->height;
+    imageSize[0]=params->pImg->width;
+    imageSize[1]=params->pImg->height;
 
-    mInTexture->subImage((const GLvoid*)(pImg->plane[0]), 0, 0, pImg->width, pImg->height, GL_RGBA);
+    mInTexture->subImage((const GLvoid*)(params->pImg->plane[0]), 0, 0, params->pImg->width, params->pImg->height, GL_RGBA);
     mProgram->bindTexture("sTexture", mInTexture->getTextureId(), GL_TEXTURE0);
     mProgram->setUniformv("imageSize", imageSize, 2);
-    mProgram->setUniform1f("level", pImg->level);
+    mProgram->setUniform1f("level", params->pImg->level);
     GLint PositionAttribute = glGetAttribLocation(program, "aPosition");
     GLint TextureCoordinateAttribute = glGetAttribLocation(program, "aTextureCoord");
 
@@ -130,8 +157,8 @@ void MakeupRender::render(void* userData){
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glReadPixels(0, 0, (GLsizei)pImg->width, (GLsizei)pImg->height,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)(pImg->plane[1]));
+    glReadPixels(0, 0, (GLsizei)(params->pImg->width), (GLsizei)(params->pImg->height),
+            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)(params->pImg->plane[1]));
 
     mProgram->unbindTexture(GL_TEXTURE0);
     mFbo.unbind(GL_TEXTURE_2D);
